@@ -1,18 +1,18 @@
-//
-//  biblia_verion2026App.swift
-//  biblia-verion2026
-//
-//  Created by Moises rojas on 25/08/26.
-//
-
-import SwiftUI
+// File: App/biblia_verion2026App.swift
 import SwiftData
+import SwiftUI
 
 @main
 struct biblia_verion2026App: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            FavoriteVerse.self,
+            BibleNote.self,
+            VerseHighlight.self,
+            ReadingHistoryEntry.self,
+            SearchHistoryEntry.self,
+            AIQuestionHistoryEntry.self,
+            AppPreference.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
