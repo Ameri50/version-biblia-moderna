@@ -77,3 +77,26 @@ struct BibleImportFile: Codable {
     let translation: BibleTranslation
     let books: [BibleBook]
 }
+
+// MARK: - Mensaje de Chat con IA
+struct ChatMessage: Identifiable, Hashable {
+    enum Role: String, Hashable {
+        case user
+        case assistant
+        case system
+    }
+
+    let id: UUID
+    let role: Role
+    let text: String
+    let references: [VerseReference]
+    let createdAt: Date
+
+    init(id: UUID = UUID(), role: Role, text: String, references: [VerseReference] = [], createdAt: Date = .now) {
+        self.id = id
+        self.role = role
+        self.text = text
+        self.references = references
+        self.createdAt = createdAt
+    }
+}

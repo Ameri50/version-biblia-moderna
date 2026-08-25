@@ -2,7 +2,7 @@
 import SwiftData
 import SwiftUI
 
-struct FavoritesView: View {
+struct favoritesView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \FavoriteVerse.createdAt, order: .reverse) private var favorites: [FavoriteVerse]
 

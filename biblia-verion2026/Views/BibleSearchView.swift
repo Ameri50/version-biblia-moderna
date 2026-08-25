@@ -6,7 +6,7 @@ struct BibleSearchView: View {
     @Environment(AppEnvironment.self) private var app
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel = SearchViewModel()
-    @Query(sort: \SearchHistoryEntry.searchedAt, order: .reverse) private var history: [SearchHistoryEntry]
+    @Query(sort: \SearchHistoryEntry.timestamp, order: .reverse) private var history: [SearchHistoryEntry]
 
     var body: some View {
         NavigationStack {
