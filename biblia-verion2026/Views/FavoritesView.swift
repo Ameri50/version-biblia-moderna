@@ -4,7 +4,7 @@ import SwiftUI
 
 struct favoritesView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \FavoriteVerse.createdAt, order: .reverse) private var favorites: [FavoriteVerse]
+    @Query(sort: \FavoriteVerse.dateAdded, order: .reverse) private var favorites: [FavoriteVerse]
 
     var body: some View {
         NavigationStack {
@@ -17,15 +17,15 @@ struct favoritesView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(favorite.reference)
                                 .font(.subheadline.weight(.semibold))
-                            Text(favorite.text)
+                            Text(favorite.content)
                                 .font(.body)
                                 .foregroundStyle(.secondary)
                         }
                         .contextMenu {
                             Button("Copiar") {
-                                UIPasteboard.general.string = "\(favorite.reference)\n\(favorite.text)"
+                                UIPasteboard.general.string = "\(favorite.reference)\n\(favorite.content)"
                             }
-                            ShareLink("Compartir", item: "\(favorite.reference)\n\(favorite.text)")
+                            ShareLink("Compartir", item: "\(favorite.reference)\n\(favorite.content)")
                         }
                     }
                     .onDelete(perform: delete)

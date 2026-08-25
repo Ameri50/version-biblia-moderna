@@ -17,13 +17,13 @@ struct NotesView: View {
                 } else {
                     ForEach(notes) { note in
                         Button {
-                            editingText = note.text
+                            editingText = note.noteContent
                             editingNote = note
                         } label: {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(note.reference)
                                     .font(.subheadline.weight(.semibold))
-                                Text(note.text)
+                                Text(note.noteContent)
                                     .font(.body)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(3)
@@ -42,7 +42,7 @@ struct NotesView: View {
             }
             .sheet(item: $editingNote) { note in
                 NoteEditorView(reference: note.reference, text: $editingText) {
-                    note.text = editingText
+                    note.noteContent = editingText
                     note.updatedAt = .now
                     editingNote = nil
                 }
