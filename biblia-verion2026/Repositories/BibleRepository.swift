@@ -16,7 +16,21 @@ final class DemoBibleRepository: BibleRepositoryProtocol {
     private let booksByTranslation: [String: [BibleBook]]
 
     init() {
-        let translation = BibleTranslation(id: "demo-es", name: "Demo Biblia", languageCode: "es", abbreviation: "DEMO", licenseSummary: "Datos de demostracion; reemplazar por textos de dominio publico o con licencia.", isDownloaded: true)
+        let bundledTranslation = BibleTranslation(
+            id: "rv1909-es",
+            name: "Reina-Valera 1909",
+            languageCode: "es",
+            abbreviation: "RV1909",
+            licenseSummary: "Reina-Valera 1909. Dominio publico / CC0 segun BibleAquifer.",
+            isDownloaded: true
+        )
+        if let bundledBooks = Self.loadBundledBible(translation: bundledTranslation), !bundledBooks.isEmpty {
+            translations = [bundledTranslation]
+            booksByTranslation = [bundledTranslation.id: bundledBooks]
+            return
+        }
+
+        let translation = BibleTranslation(id: "demo-es", name: "Demo Biblia", languageCode: "es", abbreviation: "DEMO", licenseSummary: "Datos de demostracion; agrega los 66 JSON de RV1909 en Resources/Bible/RV1909 para habilitar la Biblia completa.", isDownloaded: true)
         translations = [translation]
         booksByTranslation = [translation.id: Self.makeBooks(translationID: translation.id)]
     }
@@ -61,7 +75,7 @@ final class DemoBibleRepository: BibleRepositoryProtocol {
 
         let john = BibleBook(id: "john", name: "Juan", testament: .new, order: 43, chapters: [
             BibleChapter(id: "\(translationID)-john-3", bookID: "john", bookName: "Juan", number: 3, verses: [
-                makeVerse(translationID, "john", "Juan", 3, 16, "Porque de tal manera amo Dios al mundo, que dio a su Hijo, para que todo aquel que cree tenga vida eterna."),
+                makeVerse(translationID, "john", "Juan", 3, 16, "Porque de tal manera amo Dios al mundo; este pasaje muestra el amor de Dios al dar a su Hijo."),
                 makeVerse(translationID, "john", "Juan", 3, 17, "Dios no envio a su Hijo para condenar al mundo, sino para que el mundo sea salvo.")
             ])
         ])
@@ -74,5 +88,132 @@ final class DemoBibleRepository: BibleRepositoryProtocol {
         ])
 
         return [genesis, psalms, john, romans]
+    }
+}
+
+private extension DemoBibleRepository {
+    struct AquiferVerse: Decodable {
+        let title: String
+        let indexReference: String
+        let content: String
+
+        enum CodingKeys: String, CodingKey {
+            case title
+            case indexReference = "index_reference"
+            case content
+        }
+    }
+
+    struct BookInfo {
+        let id: String
+        let name: String
+        let testament: BibleTestament
+        let order: Int
+    }
+
+    static let bookInfoByNumber: [Int: BookInfo] = {
+        let names = [
+            "Genesis", "Exodo", "Levitico", "Numeros", "Deuteronomio", "Josue", "Jueces", "Rut",
+            "1 Samuel", "2 Samuel", "1 Reyes", "2 Reyes", "1 Cronicas", "2 Cronicas", "Esdras", "Nehemias",
+            "Ester", "Job", "Salmos", "Proverbios", "Eclesiastes", "Cantares", "Isaias", "Jeremias",
+            "Lamentaciones", "Ezequiel", "Daniel", "Oseas", "Joel", "Amos", "Abdias", "Jonas",
+            "Miqueas", "Nahum", "Habacuc", "Sofonias", "Hageo", "Zacarias", "Malaquias", "Mateo",
+            "Marcos", "Lucas", "Juan", "Hechos", "Romanos", "1 Corintios", "2 Corintios", "Galatas",
+            "Efesios", "Filipenses", "Colosenses", "1 Tesalonicenses", "2 Tesalonicenses", "1 Timoteo",
+            "2 Timoteo", "Tito", "Filemon", "Hebreos", "Santiago", "1 Pedro", "2 Pedro", "1 Juan",
+            "2 Juan", "3 Juan", "Judas", "Apocalipsis"
+        ]
+        return Dictionary(uniqueKeysWithValues: names.enumerated().map { index, name in
+            let order = index + 1
+            let slug = normalizeID(name)
+            let testament: BibleTestament = order <= 39 ? .old : .new
+            return (order, BookInfo(id: slug, name: name, testament: testament, order: order))
+        })
+    }()
+
+    static func loadBundledBible(translation: BibleTranslation) -> [BibleBook]? {
+        let decoder = JSONDecoder()
+        let urls = bundledBibleURLs()
+        guard !urls.isEmpty else { return nil }
+
+        var chaptersByBook: [Int: [Int: [BibleVerse]]] = [:]
+        for url in urls.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+            guard let data = try? Data(contentsOf: url),
+                  let records = try? decoder.decode([AquiferVerse].self, from: data)
+            else { continue }
+
+            for record in records {
+                guard let parsed = parse(indexReference: record.indexReference),
+                      let info = bookInfoByNumber[parsed.book]
+                else { continue }
+                let text = plainText(fromHTML: record.content)
+                let verse = BibleVerse(
+                    id: "\(translation.id)-\(info.id)-\(parsed.chapter)-\(parsed.verse)",
+                    translationID: translation.id,
+                    bookID: info.id,
+                    bookName: info.name,
+                    chapter: parsed.chapter,
+                    number: parsed.verse,
+                    text: text
+                )
+                chaptersByBook[parsed.book, default: [:]][parsed.chapter, default: []].append(verse)
+            }
+        }
+
+        return chaptersByBook.keys.sorted().compactMap { bookNumber in
+            guard let info = bookInfoByNumber[bookNumber],
+                  let chapters = chaptersByBook[bookNumber]
+            else { return nil }
+            let bibleChapters = chapters.keys.sorted().map { chapterNumber in
+                BibleChapter(
+                    id: "\(translation.id)-\(info.id)-\(chapterNumber)",
+                    bookID: info.id,
+                    bookName: info.name,
+                    number: chapterNumber,
+                    verses: chapters[chapterNumber, default: []].sorted { $0.number < $1.number }
+                )
+            }
+            return BibleBook(id: info.id, name: info.name, testament: info.testament, order: info.order, chapters: bibleChapters)
+        }
+    }
+
+    static func bundledBibleURLs() -> [URL] {
+        let bundle = Bundle.main
+        let subdirectoryURLs = bundle.urls(forResourcesWithExtension: "json", subdirectory: "Bible/RV1909") ?? []
+        let flatURLs = bundle.urls(forResourcesWithExtension: "json", subdirectory: nil) ?? []
+        let installedURLs = (try? FileManager.default.contentsOfDirectory(
+            at: BibleResourceInstaller.localDirectory,
+            includingPropertiesForKeys: nil
+        )) ?? []
+        return (installedURLs + subdirectoryURLs + flatURLs)
+            .filter { $0.lastPathComponent.hasSuffix(".content.json") }
+    }
+
+    static func parse(indexReference: String) -> (book: Int, chapter: Int, verse: Int)? {
+        guard indexReference.count == 8 else { return nil }
+        let bookEnd = indexReference.index(indexReference.startIndex, offsetBy: 2)
+        let chapterEnd = indexReference.index(bookEnd, offsetBy: 3)
+        let book = Int(indexReference[..<bookEnd])
+        let chapter = Int(indexReference[bookEnd..<chapterEnd])
+        let verse = Int(indexReference[chapterEnd...])
+        guard let book, let chapter, let verse else { return nil }
+        return (book, chapter, verse)
+    }
+
+    static func plainText(fromHTML html: String) -> String {
+        var text = html
+            .replacingOccurrences(of: #"<sup>.*?</sup>"#, with: "", options: .regularExpression)
+            .replacingOccurrences(of: #"<[^>]+>"#, with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "&nbsp;", with: " ")
+            .replacingOccurrences(of: "&quot;", with: "\"")
+            .replacingOccurrences(of: "&amp;", with: "&")
+        text = text.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    static func normalizeID(_ name: String) -> String {
+        name.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .lowercased()
+            .replacingOccurrences(of: " ", with: "-")
     }
 }

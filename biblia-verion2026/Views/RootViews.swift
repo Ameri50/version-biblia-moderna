@@ -84,14 +84,29 @@ struct BibleReaderView: View {
     @State private var inChapterSearch = ""
     @State private var selectedVerseForNote: BibleVerse?
     @State private var noteText = ""
+    @State private var showBookPicker = false
 
     var body: some View {
         NavigationStack {
             List {
                 Section {
-                    Picker("Libro", selection: $app.selectedBookID) {
-                        ForEach(app.books) { book in
-                            Text(book.name).tag(book.id)
+                    Button {
+                        showBookPicker = true
+                    } label: {
+                        HStack {
+                            Text("Libro")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            if let category = selectedBook?.category {
+                                Circle()
+                                    .fill(category.color)
+                                    .frame(width: 10, height: 10)
+                            }
+                            Text(app.currentChapter?.bookName ?? selectedBook?.name ?? "Elegir")
+                                .foregroundStyle(.secondary)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
                         }
                     }
                     Picker("Capitulo", selection: $app.selectedChapter) {
@@ -137,7 +152,15 @@ struct BibleReaderView: View {
                     selectedVerseForNote = nil
                 }
             }
+            .sheet(isPresented: $showBookPicker) {
+                BookPickerView()
+                    .environmentObject(app)
+            }
         }
+    }
+
+    private var selectedBook: BibleBook? {
+        app.books.first { $0.id == app.selectedBookID }
     }
 
     private var chapterTitle: String {

@@ -1,32 +1,35 @@
 // File: ViewModels/AppViewModels.swift
 import Foundation
+import Observation
 import SwiftData
 
 @MainActor
-final class AppEnvironment: ObservableObject {
+@Observable
+final class AppEnvironment {
     let bibleRepository: BibleRepositoryProtocol
     let searchService: BibleSearchServiceProtocol
     let aiService: AIServiceProtocol
 
-    @Published var selectedTranslationID: String
-    @Published var appLanguageCode = "es"
-    @Published var selectedBookID = "john"
-    @Published var selectedChapter = 3
-    @Published var fontSize: Double = 19
-    @Published var lineSpacing: Double = 7
-    @Published var showVerseNumbers = true
-    @Published var aiEnabled = true
-    @Published var colorSchemePreference = "system"
+    var selectedTranslationID: String
+    var appLanguageCode = "es"
+    var selectedBookID = "john"
+    var selectedChapter = 3
+    var fontSize: Double = 19
+    var lineSpacing: Double = 7
+    var showVerseNumbers = true
+    var aiEnabled = true
+    var colorSchemePreference = "system"
 
     init(
-        bibleRepository: BibleRepositoryProtocol = DemoBibleRepository.shared,
+        bibleRepository: BibleRepositoryProtocol? = nil,
         searchService: BibleSearchServiceProtocol? = nil,
-        aiService: AIServiceProtocol = AIServiceFactory.makeService()
+        aiService: AIServiceProtocol? = nil
     ) {
-        self.bibleRepository = bibleRepository
-        self.searchService = searchService ?? BibleSearchService(repository: bibleRepository)
-        self.aiService = aiService
-        self.selectedTranslationID = bibleRepository.translations.first?.id ?? "demo-es"
+        let resolvedRepository = bibleRepository ?? BibleRepositoryFactory.makeDefault()
+        self.bibleRepository = resolvedRepository
+        self.searchService = searchService ?? BibleSearchService(repository: resolvedRepository)
+        self.aiService = aiService ?? AIServiceFactory.makeService()
+        self.selectedTranslationID = resolvedRepository.translations.first?.id ?? "demo-es"
     }
 
     var currentTranslation: BibleTranslation? {
@@ -49,9 +52,10 @@ final class AppEnvironment: ObservableObject {
 }
 
 @MainActor
-final class SearchViewModel: ObservableObject {
-    @Published var query = ""
-    @Published var results: [BibleSearchResult] = []
+@Observable
+final class SearchViewModel {
+    var query = ""
+    var results: [BibleSearchResult] = []
 
     func submit(using environment: AppEnvironment, modelContext: ModelContext?) {
         results = environment.searchService.search(query, translationID: environment.selectedTranslationID)
@@ -62,13 +66,14 @@ final class SearchViewModel: ObservableObject {
 }
 
 @MainActor
-final class AIViewModel: ObservableObject {
-    @Published var input = ""
-    @Published var messages: [ChatMessage] = [
+@Observable
+final class AIViewModel {
+    var input = ""
+    var messages: [ChatMessage] = [
         ChatMessage(role: .assistant, text: "Haz una pregunta sobre la Biblia. Las respuestas usaran primero los pasajes locales disponibles.")
     ]
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    var isLoading = false
+    var errorMessage: String?
 
     func ask(using environment: AppEnvironment, modelContext: ModelContext?) async {
         let question = input.trimmingCharacters(in: .whitespacesAndNewlines)
