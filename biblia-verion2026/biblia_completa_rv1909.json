@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# Script para descargar la Biblia completa Reina-Valera 1909 (66 libros)
+# Fuente: BibleAquifer - https://github.com/BibleAquifer/ReinaValera1909
+
+# Crear directorio si no existe
+mkdir -p biblia-verion2026/Resources/Bible/RV1909
+
+echo "📖 Descargando 66 libros de la Biblia Reina-Valera 1909..."
+echo "Esto puede tardar unos minutos..."
+echo ""
+
+# Descargar los 66 libros
+for i in $(seq -w 1 66); do
+  # Nombre del libro para referencia
+  case $i in
+    01) LIBRO="Génesis" ;;
+    02) LIBRO="Éxodo" ;;
+    03) LIBRO="Levítico" ;;
+    04) LIBRO="Números" ;;
+    05) LIBRO="Deuteronomio" ;;
+    06) LIBRO="Josué" ;;
+    07) LIBRO="Jueces" ;;
+    08) LIBRO="Rut" ;;
+    09) LIBRO="1 Samuel" ;;
+    10) LIBRO="2 Samuel" ;;
+    11) LIBRO="1 Reyes" ;;
+    12) LIBRO="2 Reyes" ;;
+    13) LIBRO="1 Crónicas" ;;
+    14) LIBRO="2 Crónicas" ;;
+    15) LIBRO="Esdras" ;;
+    16) LIBRO="Nehemías" ;;
+    17) LIBRO="Ester" ;;
+    18) LIBRO="Job" ;;
+    19) LIBRO="Salmos" ;;
+    20) LIBRO="Proverbios" ;;
+    21) LIBRO="Eclesiastés" ;;
+    22) LIBRO="Cantares" ;;
+    23) LIBRO="Isaías" ;;
+    24) LIBRO="Jeremías" ;;
+    25) LIBRO="Lamentaciones" ;;
+    26) LIBRO="Ezequiel" ;;
+    27) LIBRO="Daniel" ;;
+    28) LIBRO="Oseas" ;;
+    29) LIBRO="Joel" ;;
+    30) LIBRO="Amós" ;;
+    31) LIBRO="Abdías" ;;
+    32) LIBRO="Jonás" ;;
+    33) LIBRO="Miqueas" ;;
+    34) LIBRO="Nahúm" ;;
+    35) LIBRO="Habacuc" ;;
+    36) LIBRO="Sofonías" ;;
+    37) LIBRO="Hageo" ;;
+    38) LIBRO="Zacarías" ;;
+    39) LIBRO="Malaquías" ;;
+    40) LIBRO="Mateo" ;;
+    41) LIBRO="Marcos" ;;
+    42) LIBRO="Lucas" ;;
+    43) LIBRO="Juan" ;;
+    44) LIBRO="Hechos de los Apóstoles" ;;
+    45) LIBRO="Romanos" ;;
+    46) LIBRO="1 Corintios" ;;
+    47) LIBRO="2 Corintios" ;;
+    48) LIBRO="Gálatas" ;;
+    49) LIBRO="Efesios" ;;
+    50) LIBRO="Filipenses" ;;
+    51) LIBRO="Colosenses" ;;
+    52) LIBRO="1 Tesalonicenses" ;;
+    53) LIBRO="2 Tesalonicenses" ;;
+    54) LIBRO="1 Timoteo" ;;
+    55) LIBRO="2 Timoteo" ;;
+    56) LIBRO="Tito" ;;
+    57) LIBRO="Filemón" ;;
+    58) LIBRO="Hebreos" ;;
+    59) LIBRO="Santiago" ;;
+    60) LIBRO="1 Pedro" ;;
+    61) LIBRO="2 Pedro" ;;
+    62) LIBRO="1 Juan" ;;
+    63) LIBRO="2 Juan" ;;
+    64) LIBRO="3 Juan" ;;
+    65) LIBRO="Judas" ;;
+    66) LIBRO="Apocalipsis" ;;
+  esac
+
+  echo -n "[$i/66] Descargando $LIBRO... "
+  
+  curl -fsSL \
+    -o "biblia-verion2026/Resources/Bible/RV1909/$i.content.json" \
+    "https://raw.githubusercontent.com/BibleAquifer/ReinaValera1909/main/spa/json/$i.content.json"
+  
+  if [ $? -eq 0 ]; then
+    echo "✓"
+  else
+    echo "✗ Error al descargar"
+  fi
+done
+
+echo ""
+echo "✅ Descarga completada!"
+echo "📊 Verificando archivos..."
+
+TOTAL=$(ls biblia-verion2026/Resources/Bible/RV1909/*.json 2>/dev/null | wc -l)
+echo "Se descargaron $TOTAL archivos de 66 esperados"
+
+if [ $TOTAL -eq 66 ]; then
+  echo "🎉 ¡Todos los 66 libros de la Biblia se descargaron correctamente!"
+  echo ""
+  echo "Próximos pasos:"
+  echo "1. Abre el proyecto en Xcode"
+  echo "2. Arrastra la carpeta 'Resources/Bible/RV1909' al target"
+  echo "3. Verifica en Build Phases > Copy Bundle Resources"
+  echo "4. Compila y ejecuta"
+else
+  echo "⚠️ Solo se descargaron $TOTAL de 66 libros. Verifica tu conexión e intenta de nuevo."
+fi
