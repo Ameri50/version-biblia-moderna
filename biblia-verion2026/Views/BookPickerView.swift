@@ -2,7 +2,7 @@
 import SwiftUI
 
 struct BookPickerView: View {
-    @EnvironmentObject private var app: AppEnvironment
+    @Environment(AppEnvironment.self) private var app
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
 

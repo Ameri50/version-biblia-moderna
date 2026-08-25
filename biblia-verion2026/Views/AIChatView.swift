@@ -3,9 +3,9 @@ import SwiftData
 import SwiftUI
 
 struct AIChatView: View {
-    @EnvironmentObject private var app: AppEnvironment
+    @Environment(AppEnvironment.self) private var app
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var viewModel = AIViewModel()
+    @State private var viewModel = AIViewModel()
 
     var body: some View {
         NavigationStack {

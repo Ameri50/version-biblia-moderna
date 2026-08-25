@@ -1,8 +1,12 @@
 // File: Repositories/RV1909BibleRepository.swift
 import Foundation
 
-/// Carga la Biblia Reina-Valera 1909 completa (66 libros) desde los JSON
-/// de BibleAquifer incluidos en el bundle de la app (Resources/Bible/RV1909).
+/// Carga la Biblia Reina-Valera 1909 completa (66 libros) desde los JSON de BibleAquifer.
+/// Busca los archivos "NN.content.json" en, por orden de prioridad:
+/// 1. La carpeta donde BibleResourceInstaller los descarga en tiempo de ejecucion.
+/// 2. La subcarpeta "Bible/RV1909" incluida en el bundle de la app.
+/// 3. La subcarpeta "RV1909" incluida en el bundle de la app.
+/// 4. Recursos sueltos en la raiz del bundle.
 final class RV1909BibleRepository: BibleRepositoryProtocol {
     static let shared = RV1909BibleRepository()
     static let translationID = "rv1909-es"
@@ -28,7 +32,7 @@ final class RV1909BibleRepository: BibleRepositoryProtocol {
         booksByTranslation = [translation.id: Self.loadBooks(translationID: translation.id)]
     }
 
-    /// true si logro cargar al menos un libro desde el bundle.
+    /// true si logro cargar al menos un libro.
     var hasContent: Bool {
         !(booksByTranslation[Self.translationID]?.isEmpty ?? true)
     }
@@ -53,22 +57,21 @@ final class RV1909BibleRepository: BibleRepositoryProtocol {
     // MARK: - Carga y parseo
 
     private static func loadBooks(translationID: String) -> [BibleBook] {
+        let urlsByFileName = availableFileURLs()
+        guard !urlsByFileName.isEmpty else { return [] }
+
         var books: [BibleBook] = []
         let decoder = JSONDecoder()
 
         for info in BibleBookCatalog.books {
-            let fileNumber = String(format: "%02d", info.number)
+            let fileName = String(format: "%02d.content.json", info.number)
 
             guard
-                let url = Bundle.main.url(
-                    forResource: "\(fileNumber).content",
-                    withExtension: "json",
-                    subdirectory: "RV1909"
-                ),
+                let url = urlsByFileName[fileName],
                 let data = try? Data(contentsOf: url),
                 let rawVerses = try? decoder.decode([RawVerse].self, from: data)
             else {
-                // Archivo no incluido todavia en el bundle: se omite este libro.
+                // Archivo no disponible todavia: se omite este libro.
                 continue
             }
 
@@ -121,6 +124,39 @@ final class RV1909BibleRepository: BibleRepositoryProtocol {
         return books.sorted { $0.order < $1.order }
     }
 
+    /// Junta los archivos "NN.content.json" disponibles en todas las ubicaciones posibles,
+    /// indexados por nombre de archivo. Si el mismo archivo existe en varias ubicaciones,
+    /// gana el de mayor prioridad (carpeta descargada > bundle).
+    private static func availableFileURLs() -> [String: URL] {
+        var result: [String: URL] = [:]
+
+        func add(_ urls: [URL]) {
+            for url in urls where url.lastPathComponent.hasSuffix(".content.json") {
+                if result[url.lastPathComponent] == nil {
+                    result[url.lastPathComponent] = url
+                }
+            }
+        }
+
+        // 1. Carpeta de descarga en tiempo de ejecucion (BibleResourceInstaller).
+        let downloaded = (try? FileManager.default.contentsOfDirectory(
+            at: BibleResourceInstaller.localDirectory,
+            includingPropertiesForKeys: nil
+        )) ?? []
+        add(downloaded)
+
+        // 2. Subcarpeta "Bible/RV1909" dentro del bundle de la app.
+        add(Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: "Bible/RV1909") ?? [])
+
+        // 3. Subcarpeta "RV1909" dentro del bundle de la app.
+        add(Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: "RV1909") ?? [])
+
+        // 4. Recursos sueltos en la raiz del bundle.
+        add(Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: nil) ?? [])
+
+        return result
+    }
+
     /// Limpia el HTML de BibleAquifer: quita <p>, <sup>N</sup>, &nbsp; y deja solo el texto plano.
     private static func cleanText(from html: String) -> String {
         var text = html
@@ -135,8 +171,8 @@ final class RV1909BibleRepository: BibleRepositoryProtocol {
     }
 }
 
-/// Decide que repositorio usar: la RV1909 completa si los JSON ya estan en el bundle,
-/// o el demo como respaldo si alguien clona el repo sin correr el script de descarga.
+/// Decide que repositorio usar: la RV1909 completa si los JSON ya estan disponibles
+/// (descargados o incluidos en el bundle), o el demo como respaldo.
 enum BibleRepositoryFactory {
     static func makeDefault() -> BibleRepositoryProtocol {
         let full = RV1909BibleRepository.shared

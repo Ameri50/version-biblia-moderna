@@ -3,7 +3,7 @@ import SwiftData
 import SwiftUI
 
 struct BibleRootView: View {
-    @StateObject private var environment = AppEnvironment()
+    @State private var environment = AppEnvironment()
 
     var body: some View {
         TabView {
@@ -18,7 +18,7 @@ struct BibleRootView: View {
             SettingsView()
                 .tabItem { Label("Ajustes", systemImage: "gearshape") }
         }
-        .environmentObject(environment)
+        .environment(environment)
         .preferredColorScheme(preferredScheme)
     }
 
@@ -32,7 +32,7 @@ struct BibleRootView: View {
 }
 
 struct HomeView: View {
-    @EnvironmentObject private var app: AppEnvironment
+    @Environment(AppEnvironment.self) private var app
     @Query(sort: \ReadingHistoryEntry.readAt, order: .reverse) private var history: [ReadingHistoryEntry]
 
     var body: some View {
@@ -78,7 +78,7 @@ struct HomeView: View {
 }
 
 struct BibleReaderView: View {
-    @EnvironmentObject private var app: AppEnvironment
+    @Environment(AppEnvironment.self) private var app
     @Environment(\.modelContext) private var modelContext
     @Query private var highlights: [VerseHighlight]
     @State private var inChapterSearch = ""
@@ -87,6 +87,8 @@ struct BibleReaderView: View {
     @State private var showBookPicker = false
 
     var body: some View {
+        @Bindable var app = app
+
         NavigationStack {
             List {
                 Section {
@@ -154,7 +156,7 @@ struct BibleReaderView: View {
             }
             .sheet(isPresented: $showBookPicker) {
                 BookPickerView()
-                    .environmentObject(app)
+                    .environment(app)
             }
         }
     }
@@ -211,7 +213,7 @@ struct BibleReaderView: View {
 }
 
 struct VerseRow: View {
-    @EnvironmentObject private var app: AppEnvironment
+    @Environment(AppEnvironment.self) private var app
     let verse: BibleVerse
     let highlight: VerseHighlight?
 

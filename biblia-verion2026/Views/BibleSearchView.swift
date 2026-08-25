@@ -3,9 +3,9 @@ import SwiftData
 import SwiftUI
 
 struct BibleSearchView: View {
-    @EnvironmentObject private var app: AppEnvironment
+    @Environment(AppEnvironment.self) private var app
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var viewModel = SearchViewModel()
+    @State private var viewModel = SearchViewModel()
     @Query(sort: \SearchHistoryEntry.searchedAt, order: .reverse) private var history: [SearchHistoryEntry]
 
     var body: some View {

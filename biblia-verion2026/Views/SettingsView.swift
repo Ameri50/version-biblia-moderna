@@ -2,9 +2,11 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @EnvironmentObject private var app: AppEnvironment
+    @Environment(AppEnvironment.self) private var app
 
     var body: some View {
+        @Bindable var app = app
+
         NavigationStack {
             Form {
                 Section("Lectura") {
