@@ -53,7 +53,13 @@ struct ContentView: View {
                 }
                 .tag(4)
             
-           
+            // TAB 6: CHAT
+            ChatView()
+                .tabItem {
+                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                    Text(NSLocalizedString("tab.ai", ""))
+                }
+                .tag(5)
             
             // TAB 7: MÁS
             MoreTabView()
@@ -516,7 +522,7 @@ struct ReadingHistoryView: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(entry.chapterReference)
                                         .font(.system(size: 14, weight: .semibold))
-                                    
+                                        
                                     Text(entry.date.formatted(date: .abbreviated, time: .shortened))
                                         .font(.system(size: 12, weight: .regular))
                                         .foregroundColor(.gray)
@@ -563,7 +569,7 @@ struct SearchHistoryView: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(search.query)
                                         .font(.system(size: 14, weight: .semibold))
-                                    
+                                        
                                     Text(search.timestamp.formatted(date: .abbreviated, time: .shortened))
                                         .font(.system(size: 12, weight: .regular))
                                         .foregroundColor(.gray)
@@ -643,5 +649,5 @@ struct AboutView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: [FavoriteVerse.self, BibleNote.self, VerseHighlight.self, ReadingHistoryEntry.self, SearchHistoryEntry.self, AIQuestionHistoryEntry.self, AppPreference.self], inMemory: true)
+        .modelContainer(for: [FavoriteVerse.self, BibleNote.self, VerseHighlight.self, ReadingHistoryEntry.self, SearchHistoryEntry.self, AIQuestionHistoryEntry.self, AppPreference.self], inMemor[...]
 }
