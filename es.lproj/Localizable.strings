@@ -1,0 +1,78 @@
+/* Tabs principales */
+"tab.bible" = "Biblia";
+"tab.search" = "Buscar";
+"tab.favorites" = "Favoritos";
+"tab.notes" = "Notas";
+"tab.highlights" = "Resaltados";
+"tab.ai" = "Chat";
+"tab.more" = "Más";
+
+/* Favoritos */
+"favorites.title" = "❤️ Favoritos";
+"favorites.subtitle" = "versículos guardados";
+"favorites.empty.title" = "Sin favoritos";
+"favorites.empty.subtitle" = "Guarda tus versículos favoritos";
+
+/* Notas */
+"notes.title" = "📝 Notas";
+"notes.subtitle" = "notas creadas";
+"notes.empty.title" = "Sin notas";
+"notes.empty.subtitle" = "Crea notas sobre versículos";
+
+/* Resaltados */
+"highlights.title" = "🟨 Resaltados";
+"highlights.subtitle" = "versículos resaltados";
+"highlights.empty.title" = "Sin resaltados";
+"highlights.empty.subtitle" = "Resalta versículos importantes";
+
+/* Más */
+"more.title" = "⚙️ Más";
+"more.subtitle" = "Configuración y más";
+"more.settings" = "Configuración";
+"more.settings.subtitle" = "Ajustes de la aplicación";
+"more.history" = "Historial de Lectura";
+"more.history.subtitle" = "capítulos leídos";
+"more.search.history" = "Historial de Búsqueda";
+"more.search.history.subtitle" = "Tus búsquedas anteriores";
+"more.about" = "Acerca de";
+"more.about.subtitle" = "Biblia Reina Valera 1909 v1.0";
+
+/* Acerca de */
+"about.title" = "Biblia Reina Valera 1909";
+"about.version" = "Versión 1.0";
+"about.features" = "Características";
+"about.features.list" = "✓ 66 libros completos\n✓ Marcadores y favoritos\n✓ Notas personales\n✓ Resaltado de versículos\n✓ Historial de lectura\n✓ Búsqueda rápida";
+"about.copyright" = "© 2024 Biblia Reina Valera 1909";
+"about.license" = "Dominio público";
+
+/* Configuración */
+"settings.title" = "Configuración";
+"settings.language" = "Idioma";
+"settings.spanish" = "Español";
+"settings.english" = "English";
+"settings.save" = "Guardar";
+
+/* General */
+"history.no.results" = "Sin historial";
+"search.no.results" = "Sin búsquedas";
+
+/* Chat */
+"chat.placeholder" = "Escribe tu mensaje…";
+"chat.share" = "Compartir conversación";
+"chat.share.tooltip" = "Compartir conversación";
+"chat.share.copied" = "Enlace copiado";
+"chat.save.toggle" = "Guardar conversación";
+"chat.saved" = "Conversación guardada";
+"chat.saved.list" = "Chats guardados";
+"chat.delete" = "Borrar chat";
+"chat.delete.confirm.title" = "¿Borrar toda la conversación?";
+"chat.delete.confirm.body" = "Esta acción no se puede deshacer.";
+"chat.delete.confirm.cancel" = "Cancelar";
+"chat.delete.confirm.delete" = "Borrar";
+"chat.delete.confirmed" = "Conversación eliminada";
+"chat.bible.pill" = "Sobre la Biblia";
+"chat.bible.activated" = "Respuestas con contexto bíblico";
+"chat.hideKeyboard" = "Bajar teclado";
+"chat.sender.user" = "Tú";
+"chat.sender.assistant" = "Chat";
+"chat.response.label" = "Respuesta";
