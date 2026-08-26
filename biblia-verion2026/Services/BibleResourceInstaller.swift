@@ -23,6 +23,19 @@ struct BibleResourceInstaller {
         return base.appendingPathComponent("Bible/RV1909", isDirectory: true)
     }
 
+    /// Verifica si todos los 66 libros ya están descargados
+    static var isComplete: Bool {
+        for bookNumber in 1...66 {
+            let fileName = String(format: "%02d.content.json", bookNumber)
+            let filePath = localDirectory.appendingPathComponent(fileName).path
+            
+            if !FileManager.default.fileExists(atPath: filePath) {
+                return false
+            }
+        }
+        return true
+    }
+
     func installRV1909() async throws {
         try FileManager.default.createDirectory(at: Self.localDirectory, withIntermediateDirectories: true)
 

@@ -94,7 +94,6 @@ class BibliaNuevaRepository: NSObject, ObservableObject {
     func cargarBiblia() {
         print("📖 Iniciando carga de la Biblia...")
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.isLoading = true
             var librosTemporales: [String: Libro] = [:]
             
             for numeroLibro in 1...66 {
