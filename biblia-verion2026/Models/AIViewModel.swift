@@ -1,4 +1,3 @@
-// File: ViewModels/AIViewModel.swift
 import SwiftData
 import SwiftUI
 import Foundation
@@ -15,38 +14,31 @@ class AIViewModel {
         let userMessage = input
         input = ""
         
-        // Agregar mensaje del usuario a la interfaz
         let userChatMessage = ChatMessage(
             id: UUID(),
             text: userMessage,
             role: .user,
-            timestamp: Date(),
             references: []
         )
         messages.append(userChatMessage)
         
-        // Marcar como cargando
         isLoading = true
         
         do {
-            // Obtener la respuesta de la IA
             let response = try await fetchAIResponse(
                 userMessage: userMessage,
                 language: language,
                 apiKey: appEnvironment.openaiAPIKey
             )
             
-            // Agregar respuesta de la IA
             let aiMessage = ChatMessage(
                 id: UUID(),
                 text: response.text,
                 role: .assistant,
-                timestamp: Date(),
                 references: response.references
             )
             messages.append(aiMessage)
             
-            // Guardar en historial
             let historyEntry = AIQuestionHistoryEntry(
                 question: userMessage,
                 answer: response.text,
@@ -56,14 +48,11 @@ class AIViewModel {
             try? modelContext.save()
             
         } catch {
-            print("Error fetching AI response: \(error)")
+            print("Error: \(error)")
             let errorMessage = ChatMessage(
                 id: UUID(),
-                text: language == "es"
-                    ? "Lo siento, hubo un error al obtener la respuesta. Por favor, intenta de nuevo."
-                    : "Sorry, there was an error getting the response. Please try again.",
+                text: "Error. Intenta de nuevo.",
                 role: .assistant,
-                timestamp: Date(),
                 references: []
             )
             messages.append(errorMessage)
@@ -77,34 +66,12 @@ class AIViewModel {
         input = "¿Qué significa \(verseText)? \(verse.text)"
     }
     
-    // MARK: - Método privado para obtener respuesta de OpenAI
     private func fetchAIResponse(
         userMessage: String,
         language: String,
         apiKey: String
     ) async throws -> (text: String, references: [BibleReference]) {
-        let languageName = language == "es" ? "español" : "English"
-        
-        // Sistema prompt que especifica el idioma
-        let systemPrompt = """
-        Eres un asistente experto en la Biblia especializado en responder preguntas sobre pasajes bíblicos.
-        
-        IDIOMA: Debes SIEMPRE responder SOLAMENTE en \(languageName).
-        - Si el usuario habla en \(languageName), responde en \(languageName).
-        - NUNCA mezcles idiomas.
-        - Adapta tu tono y expresiones al idioma seleccionado.
-        
-        INSTRUCCIONES:
-        1. Proporciona respuestas claras y precisas sobre pasajes bíblicos
-        2. Cita los versículos relevantes cuando sea apropiado
-        3. Explica el contexto histórico y cultural cuando sea necesario
-        4. Ofrece interpretaciones diversas si existen
-        5. Sé respetuoso y académico en tu enfoque
-        
-        FORMATO DE REFERENCIAS:
-        Cuando menciones un versículo, úsalo en este formato: "Libro Capítulo:Versículo"
-        Ejemplo: "Génesis 1:1" o "Juan 3:16"
-        """
+        let systemPrompt = "Eres un experto en la Biblia. Responde en \(language == "es" ? "español" : "inglés")."
         
         let messages: [[String: String]] = [
             ["role": "system", "content": systemPrompt],
@@ -119,7 +86,7 @@ class AIViewModel {
         ]
         
         guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else {
-            throw NSError(domain: "JSON Encoding Error", code: -1)
+            throw NSError(domain: "JSON Error", code: -1)
         }
         
         var request = URLRequest(url: URL(string: "https://api.openai.com/v1/chat/completions")!)
@@ -138,20 +105,15 @@ class AIViewModel {
         let result = try decoder.decode(OpenAIResponse.self, from: data)
         
         guard let content = result.choices.first?.message.content else {
-            throw NSError(domain: "No content in response", code: -1)
+            throw NSError(domain: "No content", code: -1)
         }
         
-        // Extraer referencias bíblicas del contenido
         let references = extractBibleReferences(from: content)
-        
         return (text: content, references: references)
     }
     
-    // MARK: - Extraer referencias bíblicas del texto
     private func extractBibleReferences(from text: String) -> [BibleReference] {
         var references: [BibleReference] = []
-        
-        // Patrón para buscar referencias como "Génesis 1:1" o "Juan 3:16"
         let pattern = "([A-ZÁÉÍÓÚa-záéíóú\\s]+)\\s(\\d+):(\\d+)"
         
         if let regex = try? NSRegularExpression(pattern: pattern) {
@@ -164,14 +126,11 @@ class AIViewModel {
                    let verseRange = Range(match.range(at: 3), in: text) {
                     
                     let book = String(text[bookRange]).trimmingCharacters(in: .whitespaces)
-                    let chapter = String(text[chapterRange])
-                    let verse = String(text[verseRange])
-                    
                     let reference = BibleReference(
                         book: book,
-                        chapter: Int(chapter) ?? 0,
-                        verse: Int(verse) ?? 0,
-                        displayText: "\(book) \(chapter):\(verse)"
+                        chapter: Int(String(text[chapterRange])) ?? 0,
+                        verse: Int(String(text[verseRange])) ?? 0,
+                        displayText: "\(book) \(text[chapterRange]):\(text[verseRange])"
                     )
                     references.append(reference)
                 }
@@ -182,12 +141,11 @@ class AIViewModel {
     }
 }
 
-// MARK: - Modelos de datos
+// MARK: - Modelos
 struct ChatMessage: Identifiable {
     let id: UUID
     let text: String
     let role: ChatRole
-    let timestamp: Date
     let references: [BibleReference]
 }
 
@@ -204,7 +162,6 @@ struct BibleReference: Identifiable {
     let displayText: String
 }
 
-// MARK: - Respuesta de OpenAI
 struct OpenAIResponse: Decodable {
     struct Choice: Decodable {
         struct Message: Decodable {

@@ -3,22 +3,20 @@ import SwiftData
 import SwiftUI
 
 struct AIChatView: View {
-    @Environment(AppEnvironment.self) private var app
+    @Environment(AppEnvironment.self) private var appEnvironment
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel = AIViewModel()
-    @StateObject private var languageManager = LanguageManager.shared
-    @State private var refreshKey = UUID()
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // BANNER DE ADVERTENCIA SI IA ESTÁ DESACTIVADA
-                if !app.aiEnabled {
+                // Banner de advertencia si IA está desactivada
+                if !appEnvironment.aiEnabled {
                     HStack(spacing: 8) {
                         Image(systemName: "exclamationmark.circle.fill")
                             .foregroundColor(.orange)
                         
-                        Text(NSLocalizedString("ai.disabled", ""))
+                        Text("AI está desactivada")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                         
@@ -33,7 +31,7 @@ struct AIChatView: View {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 12) {
                             ForEach(viewModel.messages) { message in
-                                ChatBubble(message: message)
+                                ChatBubbleView(message: message)
                                     .id(message.id)
                             }
                             
@@ -42,7 +40,7 @@ struct AIChatView: View {
                                     ProgressView()
                                         .scaleEffect(0.8, anchor: .center)
                                     
-                                    Text(NSLocalizedString("ai.thinking", ""))
+                                    Text("Pensando...")
                                         .foregroundStyle(.secondary)
                                         .font(.system(size: 14, weight: .medium))
                                 }
@@ -54,17 +52,19 @@ struct AIChatView: View {
                     }
                     .onChange(of: viewModel.messages.count) { _, _ in
                         if let last = viewModel.messages.last {
-                            withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
+                            withAnimation {
+                                proxy.scrollTo(last.id, anchor: .bottom)
+                            }
                         }
                     }
                 }
 
                 Divider()
 
-                // INPUT DE CHAT
+                // Input de chat
                 HStack(spacing: 8) {
                     TextField(
-                        NSLocalizedString("ai.placeholder", ""),
+                        "Pregunta sobre la Biblia...",
                         text: $viewModel.input,
                         axis: .vertical
                     )
@@ -75,9 +75,9 @@ struct AIChatView: View {
                     Button {
                         Task {
                             await viewModel.ask(
-                                using: app,
+                                using: appEnvironment,
                                 modelContext: modelContext,
-                                language: languageManager.currentLanguage
+                                language: "es"
                             )
                         }
                     } label: {
@@ -91,28 +91,18 @@ struct AIChatView: View {
                 }
                 .padding()
             }
-            .navigationTitle(NSLocalizedString("ai.title", ""))
+            .navigationTitle("Pregunta a la IA")
             .navigationBarTitleDisplayMode(.inline)
-            .id(refreshKey)
-            .onReceive(NotificationCenter.default.publisher(for: .askAIAboutVerse)) { notification in
-                if let verse = notification.object as? BibleVerse {
-                    viewModel.askAbout(verse)
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("LanguageChanged"))) { _ in
-                refreshKey = UUID()
-            }
         }
     }
 }
 
 // MARK: - Chat Bubble Component
-private struct ChatBubble: View {
+private struct ChatBubbleView: View {
     let message: ChatMessage
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
-            // Avatar o icono del usuario
             if message.role == .user {
                 Spacer(minLength: 40)
             } else {
@@ -126,15 +116,12 @@ private struct ChatBubble: View {
                 .cornerRadius(8)
             }
             
-            // Contenido del mensaje
             VStack(alignment: .leading, spacing: 8) {
-                // Texto del mensaje
                 Text(message.text)
                     .font(.system(size: 15, weight: .regular))
                     .lineSpacing(2)
-                    .foregroundColor(message.role == .user ? .primary : .primary)
+                    .foregroundColor(.primary)
                 
-                // Referencias bíblicas (si las hay)
                 if !message.references.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         ForEach(message.references) { reference in
@@ -162,9 +149,8 @@ private struct ChatBubble: View {
             )
             .cornerRadius(12)
             
-            // Espaciador para el lado derecho si es mensaje del usuario
             if message.role == .user {
-                // Nada, ya está Spacer al inicio
+                Spacer(minLength: 40)
             } else {
                 Spacer(minLength: 40)
             }
