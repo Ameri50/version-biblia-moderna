@@ -1,0 +1,57 @@
+/* Main Tabs */
+"tab.bible" = "Bible";
+"tab.search" = "Search";
+"tab.favorites" = "Favorites";
+"tab.notes" = "Notes";
+"tab.highlights" = "Highlights";
+"tab.ai" = "AI";
+"tab.more" = "More";
+
+/* Favorites */
+"favorites.title" = "❤️ Favorites";
+"favorites.subtitle" = "saved verses";
+"favorites.empty.title" = "No favorites";
+"favorites.empty.subtitle" = "Save your favorite verses";
+
+/* Notes */
+"notes.title" = "📝 Notes";
+"notes.subtitle" = "notes created";
+"notes.empty.title" = "No notes";
+"notes.empty.subtitle" = "Create notes about verses";
+
+/* Highlights */
+"highlights.title" = "🟨 Highlights";
+"highlights.subtitle" = "highlighted verses";
+"highlights.empty.title" = "No highlights";
+"highlights.empty.subtitle" = "Highlight important verses";
+
+/* More */
+"more.title" = "⚙️ More";
+"more.subtitle" = "Settings and more";
+"more.settings" = "Settings";
+"more.settings.subtitle" = "Application settings";
+"more.history" = "Reading History";
+"more.history.subtitle" = "chapters read";
+"more.search.history" = "Search History";
+"more.search.history.subtitle" = "Your previous searches";
+"more.about" = "About";
+"more.about.subtitle" = "Bible Reina Valera 1909 v1.0";
+
+/* About */
+"about.title" = "Bible Reina Valera 1909";
+"about.version" = "Version 1.0";
+"about.features" = "Features";
+"about.features.list" = "✓ 66 complete books\n✓ Bookmarks and favorites\n✓ Personal notes\n✓ Verse highlighting\n✓ Reading history\n✓ Quick search";
+"about.copyright" = "© 2024 Bible Reina Valera 1909";
+"about.license" = "Public domain";
+
+/* Settings */
+"settings.title" = "Settings";
+"settings.language" = "Language";
+"settings.spanish" = "Spanish";
+"settings.english" = "English";
+"settings.save" = "Save";
+
+/* General */
+"history.no.results" = "No history";
+"search.no.results" = "No searches";

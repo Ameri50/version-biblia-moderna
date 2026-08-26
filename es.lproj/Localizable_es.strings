@@ -1,0 +1,57 @@
+/* Tabs principales */
+"tab.bible" = "Biblia";
+"tab.search" = "Buscar";
+"tab.favorites" = "Favoritos";
+"tab.notes" = "Notas";
+"tab.highlights" = "Resaltados";
+"tab.ai" = "IA";
+"tab.more" = "Más";
+
+/* Favoritos */
+"favorites.title" = "❤️ Favoritos";
+"favorites.subtitle" = "versículos guardados";
+"favorites.empty.title" = "Sin favoritos";
+"favorites.empty.subtitle" = "Guarda tus versículos favoritos";
+
+/* Notas */
+"notes.title" = "📝 Notas";
+"notes.subtitle" = "notas creadas";
+"notes.empty.title" = "Sin notas";
+"notes.empty.subtitle" = "Crea notas sobre versículos";
+
+/* Resaltados */
+"highlights.title" = "🟨 Resaltados";
+"highlights.subtitle" = "versículos resaltados";
+"highlights.empty.title" = "Sin resaltados";
+"highlights.empty.subtitle" = "Resalta versículos importantes";
+
+/* Más */
+"more.title" = "⚙️ Más";
+"more.subtitle" = "Configuración y más";
+"more.settings" = "Configuración";
+"more.settings.subtitle" = "Ajustes de la aplicación";
+"more.history" = "Historial de Lectura";
+"more.history.subtitle" = "capítulos leídos";
+"more.search.history" = "Historial de Búsqueda";
+"more.search.history.subtitle" = "Tus búsquedas anteriores";
+"more.about" = "Acerca de";
+"more.about.subtitle" = "Biblia Reina Valera 1909 v1.0";
+
+/* Acerca de */
+"about.title" = "Biblia Reina Valera 1909";
+"about.version" = "Versión 1.0";
+"about.features" = "Características";
+"about.features.list" = "✓ 66 libros completos\n✓ Marcadores y favoritos\n✓ Notas personales\n✓ Resaltado de versículos\n✓ Historial de lectura\n✓ Búsqueda rápida";
+"about.copyright" = "© 2024 Biblia Reina Valera 1909";
+"about.license" = "Dominio público";
+
+/* Configuración */
+"settings.title" = "Configuración";
+"settings.language" = "Idioma";
+"settings.spanish" = "Español";
+"settings.english" = "English";
+"settings.save" = "Guardar";
+
+/* General */
+"history.no.results" = "Sin historial";
+"search.no.results" = "Sin búsquedas";

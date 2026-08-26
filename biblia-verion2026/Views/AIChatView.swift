@@ -6,17 +6,27 @@ struct AIChatView: View {
     @Environment(AppEnvironment.self) private var app
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel = AIViewModel()
+    @StateObject private var languageManager = LanguageManager.shared
+    @State private var refreshKey = UUID()
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                // BANNER DE ADVERTENCIA SI IA ESTÁ DESACTIVADA
                 if !app.aiEnabled {
-                    Text("La IA esta desactivada en Ajustes.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .padding(8)
-                        .frame(maxWidth: .infinity)
-                        .background(.yellow.opacity(0.15))
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundColor(.orange)
+                        
+                        Text(NSLocalizedString("ai.disabled", ""))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        
+                        Spacer()
+                    }
+                    .padding(8)
+                    .frame(maxWidth: .infinity)
+                    .background(.orange.opacity(0.15))
                 }
 
                 ScrollViewReader { proxy in
@@ -26,13 +36,18 @@ struct AIChatView: View {
                                 ChatBubble(message: message)
                                     .id(message.id)
                             }
+                            
                             if viewModel.isLoading {
-                                HStack {
+                                HStack(spacing: 8) {
                                     ProgressView()
-                                    Text("Pensando...")
+                                        .scaleEffect(0.8, anchor: .center)
+                                    
+                                    Text(NSLocalizedString("ai.thinking", ""))
                                         .foregroundStyle(.secondary)
+                                        .font(.system(size: 14, weight: .medium))
                                 }
                                 .padding(.horizontal)
+                                .padding(.top, 8)
                             }
                         }
                         .padding()
@@ -46,52 +61,120 @@ struct AIChatView: View {
 
                 Divider()
 
+                // INPUT DE CHAT
                 HStack(spacing: 8) {
-                    TextField("Pregunta sobre la Biblia...", text: $viewModel.input, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .lineLimit(1...4)
+                    TextField(
+                        NSLocalizedString("ai.placeholder", ""),
+                        text: $viewModel.input,
+                        axis: .vertical
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .lineLimit(1...4)
+                    .font(.system(size: 14, weight: .regular))
+                    
                     Button {
-                        Task { await viewModel.ask(using: app, modelContext: modelContext) }
+                        Task {
+                            await viewModel.ask(
+                                using: app,
+                                modelContext: modelContext,
+                                language: languageManager.currentLanguage
+                            )
+                        }
                     } label: {
                         Image(systemName: "arrow.up.circle.fill")
                             .font(.title2)
+                            .foregroundColor(.blue)
                     }
-                    .disabled(viewModel.input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isLoading)
+                    .disabled(
+                        viewModel.input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isLoading
+                    )
                 }
                 .padding()
             }
-            .navigationTitle("Preguntar a IA")
+            .navigationTitle(NSLocalizedString("ai.title", ""))
+            .navigationBarTitleDisplayMode(.inline)
+            .id(refreshKey)
             .onReceive(NotificationCenter.default.publisher(for: .askAIAboutVerse)) { notification in
                 if let verse = notification.object as? BibleVerse {
                     viewModel.askAbout(verse)
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("LanguageChanged"))) { _ in
+                refreshKey = UUID()
+            }
         }
     }
 }
 
+// MARK: - Chat Bubble Component
 private struct ChatBubble: View {
     let message: ChatMessage
 
     var body: some View {
-        HStack {
-            if message.role == .user { Spacer(minLength: 40) }
-            VStack(alignment: .leading, spacing: 6) {
+        HStack(alignment: .top, spacing: 8) {
+            // Avatar o icono del usuario
+            if message.role == .user {
+                Spacer(minLength: 40)
+            } else {
+                VStack(alignment: .center) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.blue)
+                }
+                .frame(width: 32, height: 32)
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(8)
+            }
+            
+            // Contenido del mensaje
+            VStack(alignment: .leading, spacing: 8) {
+                // Texto del mensaje
                 Text(message.text)
+                    .font(.system(size: 15, weight: .regular))
+                    .lineSpacing(2)
+                    .foregroundColor(message.role == .user ? .primary : .primary)
+                
+                // Referencias bíblicas (si las hay)
                 if !message.references.isEmpty {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 4) {
                         ForEach(message.references) { reference in
-                            Text(reference.displayText)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            HStack(spacing: 4) {
+                                Image(systemName: "book.fill")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.blue)
+                                
+                                Text(reference.displayText)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
+                    .padding(8)
+                    .background(Color.blue.opacity(0.08))
+                    .cornerRadius(6)
                 }
             }
-            .padding(10)
-            .background(message.role == .user ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.12))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            if message.role != .user { Spacer(minLength: 40) }
+            .padding(12)
+            .background(
+                message.role == .user
+                    ? Color.blue.opacity(0.15)
+                    : Color.gray.opacity(0.1)
+            )
+            .cornerRadius(12)
+            
+            // Espaciador para el lado derecho si es mensaje del usuario
+            if message.role == .user {
+                // Nada, ya está Spacer al inicio
+            } else {
+                Spacer(minLength: 40)
+            }
         }
+        .padding(.horizontal, 4)
     }
+}
+
+#Preview {
+    AIChatView()
+        .environment(AppEnvironment())
+        .modelContainer(for: [AIQuestionHistoryEntry.self], inMemory: true)
 }

@@ -6,7 +6,8 @@ struct ContentView: View {
     @Environment(\.modelContext) var modelContext
     @State private var selectedTab = 0
     @StateObject private var repository = BibliaNuevaRepository.shared
-  
+    @StateObject private var languageManager = LanguageManager.shared
+    @State private var refreshKey = UUID()
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -16,7 +17,7 @@ struct ContentView: View {
             }
             .tabItem {
                 Image(systemName: "book.fill")
-                Text("Biblia")
+                Text(NSLocalizedString("tab.bible", ""))
             }
             .tag(0)
             
@@ -24,7 +25,7 @@ struct ContentView: View {
             BibleSearchView()
                 .tabItem {
                     Image(systemName: "magnifyingglass")
-                    Text("Buscar")
+                    Text(NSLocalizedString("tab.search", ""))
                 }
                 .tag(1)
             
@@ -32,7 +33,7 @@ struct ContentView: View {
             FavoritesTabView()
                 .tabItem {
                     Image(systemName: "heart.fill")
-                    Text("Favoritos")
+                    Text(NSLocalizedString("tab.favorites", ""))
                 }
                 .tag(2)
             
@@ -40,7 +41,7 @@ struct ContentView: View {
             NotesTabView()
                 .tabItem {
                     Image(systemName: "note.text.badge.plus")
-                    Text("Notas")
+                    Text(NSLocalizedString("tab.notes", ""))
                 }
                 .tag(3)
             
@@ -48,7 +49,7 @@ struct ContentView: View {
             HighlightsTabView()
                 .tabItem {
                     Image(systemName: "highlighter")
-                    Text("Resaltados")
+                    Text(NSLocalizedString("tab.highlights", ""))
                 }
                 .tag(4)
             
@@ -56,7 +57,7 @@ struct ContentView: View {
             AIChatView()
                 .tabItem {
                     Image(systemName: "sparkles")
-                    Text("IA")
+                    Text(NSLocalizedString("tab.ai", ""))
                 }
                 .tag(5)
             
@@ -64,11 +65,14 @@ struct ContentView: View {
             MoreTabView()
                 .tabItem {
                     Image(systemName: "ellipsis")
-                    Text("Más")
+                    Text(NSLocalizedString("tab.more", ""))
                 }
                 .tag(6)
         }
-        
+        .id(refreshKey)
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("LanguageChanged"))) { _ in
+            refreshKey = UUID()
+        }
         .onAppear {
             repository.cargarBiblia()
         }
@@ -85,13 +89,20 @@ struct FavoritesTabView: View {
             VStack(spacing: 0) {
                 // HEADER
                 VStack(spacing: 8) {
-                    Text("❤️ Favoritos")
+                    Text(NSLocalizedString("favorites.title", ""))
                         .font(.system(size: 24, weight: .bold, design: .default))
                         .foregroundColor(.white)
                     
-                    Text("\(favorites.count) versículos guardados")
-                        .font(.system(size: 14, weight: .regular, design: .default))
-                        .foregroundColor(.white.opacity(0.8))
+                    HStack(spacing: 4) {
+                        // ✅ CORREGIDO: Usar String() en lugar de "\(...)"
+                        Text(String(favorites.count))
+                            .font(.system(size: 14, weight: .regular, design: .default))
+                            .foregroundColor(.white.opacity(0.8))
+                        
+                        Text(NSLocalizedString("favorites.subtitle", ""))
+                            .font(.system(size: 14, weight: .regular, design: .default))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
@@ -112,11 +123,11 @@ struct FavoritesTabView: View {
                             .font(.system(size: 48))
                             .foregroundColor(.gray)
                         
-                        Text("Sin favoritos")
+                        Text(NSLocalizedString("favorites.empty.title", ""))
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(.gray)
                         
-                        Text("Guarda tus versículos favoritos")
+                        Text(NSLocalizedString("favorites.empty.subtitle", ""))
                             .font(.system(size: 14, weight: .regular))
                             .foregroundColor(.gray)
                     }
@@ -186,13 +197,20 @@ struct NotesTabView: View {
             VStack(spacing: 0) {
                 // HEADER
                 VStack(spacing: 8) {
-                    Text("📝 Notas")
+                    Text(NSLocalizedString("notes.title", ""))
                         .font(.system(size: 24, weight: .bold, design: .default))
                         .foregroundColor(.white)
                     
-                    Text("\(notes.count) notas creadas")
-                        .font(.system(size: 14, weight: .regular, design: .default))
-                        .foregroundColor(.white.opacity(0.8))
+                    HStack(spacing: 4) {
+                        // ✅ CORREGIDO: Usar String() en lugar de "\(...)"
+                        Text(String(notes.count))
+                            .font(.system(size: 14, weight: .regular, design: .default))
+                            .foregroundColor(.white.opacity(0.8))
+                        
+                        Text(NSLocalizedString("notes.subtitle", ""))
+                            .font(.system(size: 14, weight: .regular, design: .default))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
@@ -213,11 +231,11 @@ struct NotesTabView: View {
                             .font(.system(size: 48))
                             .foregroundColor(.gray)
                         
-                        Text("Sin notas")
+                        Text(NSLocalizedString("notes.empty.title", ""))
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(.gray)
                         
-                        Text("Crea notas sobre versículos")
+                        Text(NSLocalizedString("notes.empty.subtitle", ""))
                             .font(.system(size: 14, weight: .regular))
                             .foregroundColor(.gray)
                     }
@@ -280,13 +298,20 @@ struct HighlightsTabView: View {
             VStack(spacing: 0) {
                 // HEADER
                 VStack(spacing: 8) {
-                    Text("🟨 Resaltados")
+                    Text(NSLocalizedString("highlights.title", ""))
                         .font(.system(size: 24, weight: .bold, design: .default))
                         .foregroundColor(.white)
                     
-                    Text("\(highlights.count) versículos resaltados")
-                        .font(.system(size: 14, weight: .regular, design: .default))
-                        .foregroundColor(.white.opacity(0.8))
+                    HStack(spacing: 4) {
+                        // ✅ CORREGIDO: Usar String() en lugar de "\(...)"
+                        Text(String(highlights.count))
+                            .font(.system(size: 14, weight: .regular, design: .default))
+                            .foregroundColor(.white.opacity(0.8))
+                        
+                        Text(NSLocalizedString("highlights.subtitle", ""))
+                            .font(.system(size: 14, weight: .regular, design: .default))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
@@ -307,11 +332,11 @@ struct HighlightsTabView: View {
                             .font(.system(size: 48))
                             .foregroundColor(.gray)
                         
-                        Text("Sin resaltados")
+                        Text(NSLocalizedString("highlights.empty.title", ""))
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(.gray)
                         
-                        Text("Resalta versículos importantes")
+                        Text(NSLocalizedString("highlights.empty.subtitle", ""))
                             .font(.system(size: 14, weight: .regular))
                             .foregroundColor(.gray)
                     }
@@ -377,11 +402,11 @@ struct MoreTabView: View {
             VStack(spacing: 0) {
                 // HEADER
                 VStack(spacing: 8) {
-                    Text("⚙️ Más")
+                    Text(NSLocalizedString("more.title", ""))
                         .font(.system(size: 24, weight: .bold, design: .default))
                         .foregroundColor(.white)
                     
-                    Text("Configuración y más")
+                    Text(NSLocalizedString("more.subtitle", ""))
                         .font(.system(size: 14, weight: .regular, design: .default))
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -403,32 +428,33 @@ struct MoreTabView: View {
                         NavigationLink(destination: SettingsView()) {
                             MoreOptionCardView(
                                 icon: "⚙️",
-                                title: "Configuración",
-                                subtitle: "Ajustes de la aplicación"
+                                title: NSLocalizedString("more.settings", ""),
+                                subtitle: NSLocalizedString("more.settings.subtitle", "")
                             )
                         }
                         
                         NavigationLink(destination: ReadingHistoryView(readingHistory: readingHistory)) {
                             MoreOptionCardView(
                                 icon: "📚",
-                                title: "Historial de Lectura",
-                                subtitle: "\(readingHistory.count) capítulos leídos"
+                                title: NSLocalizedString("more.history", ""),
+                                // ✅ CORREGIDO: Usar String() en lugar de "\(...)"
+                                subtitle: String(readingHistory.count) + " " + NSLocalizedString("more.history.subtitle", "")
                             )
                         }
                         
                         NavigationLink(destination: SearchHistoryView()) {
                             MoreOptionCardView(
                                 icon: "🔍",
-                                title: "Historial de Búsqueda",
-                                subtitle: "Tus búsquedas anteriores"
+                                title: NSLocalizedString("more.search.history", ""),
+                                subtitle: NSLocalizedString("more.search.history.subtitle", "")
                             )
                         }
                         
                         NavigationLink(destination: AboutView()) {
                             MoreOptionCardView(
                                 icon: "ℹ️",
-                                title: "Acerca de",
-                                subtitle: "Biblia Reina Valera 1909 v1.0"
+                                title: NSLocalizedString("more.about", ""),
+                                subtitle: NSLocalizedString("more.about.subtitle", "")
                             )
                         }
                     }
@@ -471,9 +497,6 @@ struct MoreOptionCardView: View {
     }
 }
 
-// NOTA: 'SettingsView' se eliminó de este archivo porque ya está definida
-// en Views/SettingsView.swift (causaba "Invalid redeclaration").
-
 // MARK: - Vista de Historial de Lectura
 struct ReadingHistoryView: View {
     let readingHistory: [ReadingHistoryEntry]
@@ -486,7 +509,7 @@ struct ReadingHistoryView: View {
                         .font(.system(size: 48))
                         .foregroundColor(.gray)
                     
-                    Text("Sin historial")
+                    Text(NSLocalizedString("history.no.results", ""))
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.gray)
                 }
@@ -516,7 +539,7 @@ struct ReadingHistoryView: View {
             }
         }
         .padding(16)
-        .navigationTitle("Historial de Lectura")
+        .navigationTitle(NSLocalizedString("more.history", ""))
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -533,7 +556,7 @@ struct SearchHistoryView: View {
                         .font(.system(size: 48))
                         .foregroundColor(.gray)
                     
-                    Text("Sin búsquedas")
+                    Text(NSLocalizedString("search.no.results", ""))
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.gray)
                 }
@@ -554,7 +577,8 @@ struct SearchHistoryView: View {
                                 
                                 Spacer()
                                 
-                                Text("\(search.resultsCount)")
+                                // ✅ CORREGIDO: Usar String() en lugar de "\(...)"
+                                Text(String(search.resultsCount))
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(.blue)
                             }
@@ -567,7 +591,7 @@ struct SearchHistoryView: View {
             }
         }
         .padding(16)
-        .navigationTitle("Historial de Búsqueda")
+        .navigationTitle(NSLocalizedString("more.search.history", ""))
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -580,10 +604,10 @@ struct AboutView: View {
                 Text("📖")
                     .font(.system(size: 64))
                 
-                Text("Biblia Reina Valera 1909")
+                Text(NSLocalizedString("about.title", ""))
                     .font(.system(size: 22, weight: .bold))
                 
-                Text("Versión 1.0")
+                Text(NSLocalizedString("about.version", ""))
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(.gray)
             }
@@ -591,10 +615,10 @@ struct AboutView: View {
             
             VStack(alignment: .leading, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Características")
+                    Text(NSLocalizedString("about.features", ""))
                         .font(.system(size: 16, weight: .semibold))
                     
-                    Text("✓ 66 libros completos\n✓ Marcadores y favoritos\n✓ Notas personales\n✓ Resaltado de versículos\n✓ Historial de lectura\n✓ Búsqueda rápida")
+                    Text(NSLocalizedString("about.features.list", ""))
                         .font(.system(size: 14, weight: .regular))
                         .foregroundColor(.primary)
                         .lineSpacing(6)
@@ -608,24 +632,20 @@ struct AboutView: View {
             Spacer()
             
             VStack(spacing: 4) {
-                Text("© 2024 Biblia Reina Valera 1909")
+                Text(NSLocalizedString("about.copyright", ""))
                     .font(.system(size: 12, weight: .regular))
                     .foregroundColor(.gray)
                 
-                Text("Dominio público")
+                Text(NSLocalizedString("about.license", ""))
                     .font(.system(size: 12, weight: .regular))
                     .foregroundColor(.gray)
             }
         }
         .padding(16)
-        .navigationTitle("Acerca de")
+        .navigationTitle(NSLocalizedString("more.about", ""))
         .navigationBarTitleDisplayMode(.inline)
     }
 }
-
-// NOTA: La extensión 'Color.init(hex:)' se eliminó de este archivo porque ya
-// está definida en Views/BibliaPrincipalViewMejorada.swift (causaba
-// "Invalid redeclaration of 'init(hex:)'").
 
 #Preview {
     ContentView()
