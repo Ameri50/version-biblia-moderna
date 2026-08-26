@@ -4,7 +4,6 @@ struct BibliaPrincipalViewMejorada: View {
     @StateObject private var repository = BibliaNuevaRepository.shared
     @State private var searchText = ""
     @State private var expandedSections: Set<UUID> = Set()
-    @State private var isLoading = true
     
     var filteredSecciones: [BibliaSeccion] {
         if searchText.isEmpty {
@@ -72,20 +71,37 @@ struct BibliaPrincipalViewMejorada: View {
                 .background(Color(.systemGray6))
                 
                 // CONTENIDO
-                if isLoading {
+                if repository.isLoading && repository.libros.isEmpty {
                     VStack(spacing: 16) {
-                        ProgressView()
-                            .scaleEffect(1.3)
-                        Text("Cargando Biblia...")
+                        ProgressView(value: repository.progreso)
+                            .progressViewStyle(.linear)
+                            .frame(width: 180)
+                        Text("Cargando Biblia... \(Int(repository.progreso * 100))%")
+                            .font(.system(size: 14))
                             .foregroundColor(.gray)
                     }
                     .frame(maxHeight: .infinity)
                     .onAppear {
-                        repository.cargarBiblia()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            isLoading = false
+                        if repository.libros.isEmpty {
+                            repository.cargarBiblia()
                         }
                     }
+                } else if let error = repository.error, repository.libros.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 40))
+                            .foregroundColor(.orange)
+                        Text(error)
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                        Button("Reintentar") {
+                            repository.cargarBiblia()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .padding(32)
+                    .frame(maxHeight: .infinity)
                 } else {
                     ScrollView {
                         VStack(spacing: 16) {
@@ -163,7 +179,7 @@ struct SectionCard: View {
     let onToggle: () -> Void
     
     var colorFromHex: Color {
-        Color(UIColor(red: 0.2, green: 0.4, blue: 0.8, alpha: 1.0 ))
+        Color(hex: seccion.color)
     }
     
     var body: some View {
@@ -248,47 +264,122 @@ struct DetalleLibroView: View {
     @StateObject private var repository = BibliaNuevaRepository.shared
     @State private var selectedChapter = 1
     @State private var chapters: [Int] = []
-    
+
     var body: some View {
-        VStack {
+        Group {
             if let libro = repository.obtenerLibro(libroId) {
-                VStack(spacing: 16) {
-                    Text(libroNombre)
-                        .font(.system(size: 22, weight: .bold))
-                    
-                    Picker("Capítulo", selection: $selectedChapter) {
-                        ForEach(chapters, id: \.self) { cap in
-                            Text("Cap. \(cap)").tag(cap)
+                VStack(spacing: 0) {
+                    // Selector de capítulos: chips en scroll horizontal
+                    ScrollViewReader { proxy in
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(chapters, id: \.self) { cap in
+                                    Button {
+                                        withAnimation(.easeInOut(duration: 0.15)) {
+                                            selectedChapter = cap
+                                        }
+                                    } label: {
+                                        Text("\(cap)")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .frame(minWidth: 36, minHeight: 36)
+                                            .background(
+                                                Circle().fill(
+                                                    cap == selectedChapter
+                                                        ? Color.blue
+                                                        : Color(.systemGray6)
+                                                )
+                                            )
+                                            .foregroundColor(cap == selectedChapter ? .white : .primary)
+                                    }
+                                    .id(cap)
+                                }
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                        }
+                        .onChange(of: selectedChapter) { _, nuevo in
+                            withAnimation { proxy.scrollTo(nuevo, anchor: .center) }
                         }
                     }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-                    
+                    .background(Color(.systemBackground))
+
+                    Divider()
+
+                    // Versículos del capítulo seleccionado
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            Text("Capítulo \(selectedChapter)")
+                                .font(.system(size: 20, weight: .bold))
+                                .padding(.top, 16)
+
                             ForEach(libro.versiculosDelCapitulo(selectedChapter)) { versiculo in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(versiculo.title)
-                                        .font(.system(size: 12, weight: .semibold))
+                                HStack(alignment: .top, spacing: 8) {
+                                    Text("\(versiculo.numeroVersiculo ?? 0)")
+                                        .font(.system(size: 13, weight: .bold))
                                         .foregroundColor(.blue)
-                                    
+                                        .frame(width: 22, alignment: .trailing)
+
                                     Text(versiculo.contenidoLimpio)
-                                        .font(.system(size: 15, weight: .regular))
+                                        .font(.system(size: 16, weight: .regular))
                                         .foregroundColor(.primary)
-                                        .lineSpacing(4)
+                                        .lineSpacing(5)
                                 }
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 12)
                             }
+
+                            // Navegación entre capítulos
+                            HStack {
+                                Button {
+                                    irACapitulo(selectedChapter - 1)
+                                } label: {
+                                    Label("Anterior", systemImage: "chevron.left")
+                                }
+                                .disabled(selectedChapter <= (chapters.first ?? 1))
+
+                                Spacer()
+
+                                Button {
+                                    irACapitulo(selectedChapter + 1)
+                                } label: {
+                                    Label("Siguiente", systemImage: "chevron.right")
+                                        .labelStyle(.titleAndIcon)
+                                }
+                                .disabled(selectedChapter >= (chapters.last ?? 1))
+                            }
+                            .padding(.top, 16)
+                            .padding(.bottom, 24)
                         }
+                        .padding(.horizontal, 16)
                     }
                 }
                 .onAppear {
                     chapters = libro.capitulosUnicos.sorted()
+                    if !chapters.contains(selectedChapter) {
+                        selectedChapter = chapters.first ?? 1
+                    }
                 }
+            } else if repository.isLoading {
+                ProgressView("Cargando \(libroNombre)...")
+                    .frame(maxHeight: .infinity)
+            } else {
+                VStack(spacing: 12) {
+                    Image(systemName: "book.closed")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gray)
+                    Text("No se pudo cargar \(libroNombre)")
+                        .foregroundColor(.gray)
+                }
+                .frame(maxHeight: .infinity)
             }
         }
+        .navigationTitle(libroNombre)
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func irACapitulo(_ numero: Int) {
+        guard chapters.contains(numero) else { return }
+        withAnimation(.easeInOut(duration: 0.15)) {
+            selectedChapter = numero
+        }
     }
 }
 

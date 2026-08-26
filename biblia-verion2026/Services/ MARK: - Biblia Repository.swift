@@ -123,14 +123,34 @@ class BibliaNuevaRepository: NSObject, ObservableObject {
         }
     }
     
+    /// Busca el JSON de un libro probando todas las rutas posibles dentro del bundle.
+    /// (Con "synchronized groups" de Xcode, el recurso queda en "Resources/Bible/RV1909",
+    /// no en "Bible/RV1909", así que probamos varias ubicaciones por seguridad).
+    private func urlParaLibro(_ numero: String) -> URL? {
+        let posiblesSubcarpetas = [
+            "Resources/Bible/RV1909",
+            "Bible/RV1909",
+            "RV1909"
+        ]
+
+        for subcarpeta in posiblesSubcarpetas {
+            if let url = Bundle.main.url(
+                forResource: numero,
+                withExtension: "content.json",
+                subdirectory: subcarpeta
+            ) {
+                return url
+            }
+        }
+
+        // Último intento: buscar suelto en la raíz del bundle
+        return Bundle.main.url(forResource: numero, withExtension: "content.json")
+    }
+
     /// Carga un libro individual desde su archivo JSON
     private func cargarLibro(_ numero: String) -> Libro? {
-        guard let url = Bundle.main.url(
-            forResource: numero,
-            withExtension: "content.json",
-            subdirectory: "Bible/RV1909"
-        ) else {
-            print("⚠️  No se encontró: \(numero).content.json")
+        guard let url = urlParaLibro(numero) else {
+            print("⚠️  No se encontró: \(numero).content.json en ninguna ruta del bundle")
             return nil
         }
         

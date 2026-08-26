@@ -1,14 +1,26 @@
 import SwiftUI
+import SwiftData
 
 @main
 struct biblia_verion2026App: App {
 
-    @StateObject private var bibleManager = BibleManager()  // ✅ Mayúscula
+    @State private var appEnvironment = AppEnvironment()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(bibleManager)
+                .environment(appEnvironment)
         }
+        .modelContainer(
+            for: [
+                FavoriteVerse.self,
+                BibleNote.self,
+                VerseHighlight.self,
+                ReadingHistoryEntry.self,
+                SearchHistoryEntry.self,
+                AIQuestionHistoryEntry.self,
+                AppPreference.self
+            ]
+        )
     }
 }

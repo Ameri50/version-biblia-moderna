@@ -4,9 +4,10 @@ import Foundation
 /// Carga la Biblia Reina-Valera 1909 completa (66 libros) desde los JSON de BibleAquifer.
 /// Busca los archivos "NN.content.json" en, por orden de prioridad:
 /// 1. La carpeta donde BibleResourceInstaller los descarga en tiempo de ejecucion.
-/// 2. La subcarpeta "Bible/RV1909" incluida en el bundle de la app.
-/// 3. La subcarpeta "RV1909" incluida en el bundle de la app.
-/// 4. Recursos sueltos en la raiz del bundle.
+/// 2. La subcarpeta "Resources/Bible/RV1909" incluida en el bundle de la app.
+/// 3. La subcarpeta "Bible/RV1909" incluida en el bundle de la app.
+/// 4. La subcarpeta "RV1909" incluida en el bundle de la app.
+/// 5. Recursos sueltos en la raiz del bundle.
 final class RV1909BibleRepository: BibleRepositoryProtocol {
     static let shared = RV1909BibleRepository()
     static let translationID = "rv1909-es"
@@ -145,13 +146,17 @@ final class RV1909BibleRepository: BibleRepositoryProtocol {
         )) ?? []
         add(downloaded)
 
-        // 2. Subcarpeta "Bible/RV1909" dentro del bundle de la app.
+        // 2. Subcarpeta "Resources/Bible/RV1909" dentro del bundle (ruta real con
+        //    "synchronized groups" de Xcode).
+        add(Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: "Resources/Bible/RV1909") ?? [])
+
+        // 3. Subcarpeta "Bible/RV1909" dentro del bundle de la app.
         add(Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: "Bible/RV1909") ?? [])
 
-        // 3. Subcarpeta "RV1909" dentro del bundle de la app.
+        // 4. Subcarpeta "RV1909" dentro del bundle de la app.
         add(Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: "RV1909") ?? [])
 
-        // 4. Recursos sueltos en la raiz del bundle.
+        // 5. Recursos sueltos en la raiz del bundle.
         add(Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: nil) ?? [])
 
         return result
