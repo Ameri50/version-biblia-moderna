@@ -4,7 +4,7 @@
 "tab.favorites" = "Favoritos";
 "tab.notes" = "Notas";
 "tab.highlights" = "Resaltados";
-"tab.ai" = "IA";
+"tab.ai" = "Chat";
 "tab.more" = "Más";
 
 /* Favoritos */
@@ -55,3 +55,24 @@
 /* General */
 "history.no.results" = "Sin historial";
 "search.no.results" = "Sin búsquedas";
+
+/* Chat */
+"chat.placeholder" = "Escribe tu mensaje…";
+"chat.share" = "Compartir conversación";
+"chat.share.tooltip" = "Compartir conversación";
+"chat.share.copied" = "Enlace copiado";
+"chat.save.toggle" = "Guardar conversación";
+"chat.saved" = "Conversación guardada";
+"chat.saved.list" = "Chats guardados";
+"chat.delete" = "Borrar chat";
+"chat.delete.confirm.title" = "¿Borrar toda la conversación?";
+"chat.delete.confirm.body" = "Esta acción no se puede deshacer.";
+"chat.delete.confirm.cancel" = "Cancelar";
+"chat.delete.confirm.delete" = "Borrar";
+"chat.delete.confirmed" = "Conversación eliminada";
+"chat.bible.pill" = "Sobre la Biblia";
+"chat.bible.activated" = "Respuestas con contexto bíblico";
+"chat.hideKeyboard" = "Bajar teclado";
+"chat.sender.user" = "Tú";
+"chat.sender.assistant" = "Chat";
+"chat.response.label" = "Respuesta";
