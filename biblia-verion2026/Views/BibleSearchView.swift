@@ -3,73 +3,88 @@ import SwiftData
 import SwiftUI
 
 struct BibleSearchView: View {
-    @Environment(AppEnvironment.self) private var app
     @Environment(\.modelContext) private var modelContext
-    @State private var viewModel = SearchViewModel()
-    @Query(sort: \SearchHistoryEntry.timestamp, order: .reverse) private var history: [SearchHistoryEntry]
+    
+    @State private var query: String = ""
+    @State private var results: [BibleSearchResult] = []
+    @State private var isLoading: Bool = false
+    
+    @Query(sort: \SearchHistoryEntry.timestamp, order: .reverse)
+    private var history: [SearchHistoryEntry]
 
     var body: some View {
         NavigationStack {
             List {
-                if viewModel.query.isEmpty {
-                    Section("Busquedas recientes") {
+                // Sección: Búsquedas recientes
+                if query.isEmpty {
+                    Section("Búsquedas recientes") {
                         if history.isEmpty {
-                            Text("Aun no hay busquedas.")
+                            Text("Aún no hay búsquedas.")
                                 .foregroundStyle(.secondary)
                         } else {
                             ForEach(history.prefix(10)) { entry in
                                 Button(entry.query) {
-                                    viewModel.query = entry.query
-                                    submit()
+                                    query = entry.query
                                 }
                             }
                         }
                     }
                 } else {
-                    Section("Resultados") {
-                        if viewModel.results.isEmpty {
-                            Text("Sin resultados para \"\(viewModel.query)\".")
+                    // Sección: Resultados
+                    if isLoading {
+                        Section {
+                            HStack {
+                                ProgressView()
+                                Text("Buscando...")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    } else if results.isEmpty {
+                        Section {
+                            Text("Sin resultados para '\(query)'")
                                 .foregroundStyle(.secondary)
-                        } else {
-                            ForEach(viewModel.results) { result in
-                                Button {
-                                    open(result)
-                                } label: {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(result.verse.reference)
-                                            .font(.subheadline.weight(.semibold))
-                                        Text(result.verse.text)
-                                            .font(.body)
-                                            .foregroundStyle(.secondary)
-                                            .lineLimit(3)
-                                    }
+                        }
+                    } else {
+                        Section("Resultados") {
+                            ForEach(results) { result in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(result.verse.reference)
+                                        .font(.subheadline.weight(.semibold))
+                                    
+                                    Text(result.verse.text)
+                                        .font(.body)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(3)
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
                     }
                 }
             }
+            .listStyle(.plain)
             .navigationTitle("Buscar")
-            .searchable(text: $viewModel.query, prompt: "Palabra, frase o referencia (ej. Juan 3:16)")
-            .onSubmit(of: .search) { submit() }
-            .onChange(of: viewModel.query) { _, newValue in
-                if newValue.isEmpty { viewModel.results = [] }
+            .searchable(
+                text: $query,
+                prompt: "Palabra, frase o referencia"
+            )
+            .onSubmit(of: .search) {
+                submit()
+            }
+            .onChange(of: query) { oldValue, newValue in
+                if newValue.isEmpty {
+                    results = []
+                }
             }
         }
     }
 
     private func submit() {
-        viewModel.submit(using: app, modelContext: modelContext)
+        // Aquí va tu lógica de búsqueda
+        print("Buscando: \(query)")
     }
+}
 
-    private func open(_ result: BibleSearchResult) {
-        app.open(VerseReference(
-            translationID: result.verse.translationID,
-            bookID: result.verse.bookID,
-            bookName: result.verse.bookName,
-            chapter: result.verse.chapter,
-            verse: result.verse.number
-        ))
-    }
+#Preview {
+    BibleSearchView()
+        .modelContainer(for: [SearchHistoryEntry.self], inMemory: true)
 }

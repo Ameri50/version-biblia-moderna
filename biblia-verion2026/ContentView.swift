@@ -53,13 +53,7 @@ struct ContentView: View {
                 }
                 .tag(4)
             
-            // TAB 6: IA
-            AIChatView()
-                .tabItem {
-                    Image(systemName: "sparkles")
-                    Text(NSLocalizedString("tab.ai", ""))
-                }
-                .tag(5)
+           
             
             // TAB 7: MÁS
             MoreTabView()

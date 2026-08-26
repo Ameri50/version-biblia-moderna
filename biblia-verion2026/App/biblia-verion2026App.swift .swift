@@ -4,12 +4,11 @@ import SwiftData
 @main
 struct biblia_verion2026App: App {
     let modelContainer: ModelContainer
-    @State private var appEnvironment = AppEnvironment()
+   
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(appEnvironment)
         }
         .modelContainer(modelContainer)
     }
@@ -25,8 +24,7 @@ struct biblia_verion2026App: App {
                 SearchHistoryEntry.self,
                 AIQuestionHistoryEntry.self,
                 AppPreference.self,
-                bibleVerse.self
-                ,
+                
                 configurations: ModelConfiguration(isStoredInMemoryOnly: false)
             )
         } catch {
